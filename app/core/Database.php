@@ -8,13 +8,13 @@ class Database
     private function __construct()
     {
         $host   = getenv('DB_HOST') ?: 'db';
-        $dbname = getenv('DB_NAME') ?: 'crud';
+        $dbname = getenv('DB_NAME') ?: 'projeto';
         $user   = getenv('DB_USER') ?: 'user';
         $pass   = getenv('DB_PASS') ?: 'user123';
     
     try {
         $this->pdo = new PDO(
-            "myslq:host=$host;dbname=$dbname;charset=utf8",
+            "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
             $user,
             $pass
         );
