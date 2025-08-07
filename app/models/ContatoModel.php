@@ -21,7 +21,9 @@ class ContatoModel
     // Irá obter através do ID de contatos
     public function getById($id)
     {
-        $stmt = $this->db->query("SELECT * FROM contatos WHERE id = :id");
+        $stmt = $this->db->prepare("SELECT * FROM contatos WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch();
     }
 
     // Irá inserir um novo contato
@@ -44,7 +46,7 @@ class ContatoModel
     public function update($id, $data)
     {
         $stmt = $this->db->prepare("
-            UPDATE CONTATOS SET
+            UPDATE contatos SET
                 nome        = :nome,
                 sobrenome   = :sobrenome,
                 telefone    = :telefone,
