@@ -2,46 +2,71 @@
 
     require_once 'models/UserModels.php';
 
-    Class AuthController
+    class AuthController
     {
         private $model;
 
         public function __construct()
         {
             $this->model = new UserModel();
-        }
-
-        public function checkAdmin()
-        {
-            return isset($_SESSION['usuario']) && $_SESSION['usuario']['perfil'] === 'admin';
-        }
-
-        public function checkLogged()
-        {
-            return isset($_SESSION['usuario']);
+            session_start();
         }
 
         public function index()
         {
-            if(!$this->checkLogged()) {
-                http_response_code(401);
-                echo json_encode(['erro' => 'Usuário não autorizado']);
+            $method = $_SERVER['REQUEST_METHOD'];
+
+            if ($method === 'POST') {
+                $json = file_get_contents('php://input');
+                $data = json_decode($json, true);
+
+                if(!isset($data['email'], $data['senha'])) {
+                    http_response_code(400);
+                    echo json_encode(['erro' => 'Email e senha obrigatório']);
+                    return;
+                }
+
+                $usuario = $this->model->findByEmail($data['email']);
+
+                if (!$usuario || !password_verify($data['senha'], $usuario['senha'])) {
+                    http_response_code(401);
+                    echo json_encode(['erro:' => 'Credenciais inválidas']);
+                    return;
+                }
+
+                $_SESSION['usuario'] = [
+                    'id'        => $usuario['id'],
+                    'nome'      => $usuario['nome'],
+                    'email'     => $usuario['email'],
+                    'perfil'    => $usuario['perfil']
+                ];
+
+                echo json_encode(['mensageem' => 'Login bem-sucedido!']);
+                return;
+
+            }
+
+            elseif ($method === 'GET') {
+                if (isset($_SESSION['usuario'])){
+                    echo json_encode($_SESSION['usuario']);
+                } else {
+                    http_response_code(401);
+                    echo json_encode(['erro' => 'Usuário não autenticado']);
+                } 
                 return;
             }
 
-            $method = $_SERVER['REQUEST_METHOD'];
+            elseif ($method === 'DELETE') {
+                session_destroy();
+                echo json_encode(['mensagem' => 'Logout realizado com sucesso']);
+                return;
+            } 
 
-            // refazer daqui pra baixo
-
-            // method GET
-
-            // method POST
-
-            // method PUT
-
-            // method DELETE
-
+            else {
+                http_response_code(405);
+                echo json_encode(['erro' => 'Método não suportado']);
+            }
         }
     }
-    
+
 ?>
