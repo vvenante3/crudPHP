@@ -1,3 +1,12 @@
+<?php
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,11 +15,22 @@
     <title>Cadastros</title>
 </head>
 <body>
-    <h1>Bem vindo(a)!</h1>
 
-    <h2>Lista de Contatos</h2>
-    <p>Usuário: <?= $_SESSION['usuario']['nome'] ?> (Perfil: <?= $_SESSION['usuario']['perfil'] ?>)</p>
-    <a href="?url=auth&logout=1">logout</a>
+    <p>
+        Usuário: <?= isset($_SESSION['nome']) ? $_SESSION['nome'] : 'Desconhecido'; ?>
+    </p>
+    <p>
+        Pefil: <?= isset($_SESSION['perfil']) ? $_SESSION['perfil'] : 'Sem perfil'; ?>
+    </p>
+
+    <?php if(!empty($_SESSION['usuario'])): ?>
+        <p>
+            Usuário: <?= htmlspecialchars($_SESSION['usuario']['nome']) ?>
+            (Perfil: <?= htmlspecialchars($_SESSION['usuario']['perfil']) ?>) 
+        </p>
+    <?php endif; ?>
+
+    <a href="?url=auth&logout=1">Logout</a>
 
     <h3>Novo Contato</h3>
     <form method="POST" action="?url=contato">
@@ -23,15 +43,21 @@
     </form>
 
     <h3>Contatos</h3>
+    <?php if(!empty($contatos) && is_array($contatos)): ?>
         <ul>
-            <?php foreach($contatos as $c): ?>
+            <?php foreach ($contatos as $c): ?>
                 <li>
-                    <?= $c['nome'] ?> <?= $c['sobrenome'] ?> - <?= $c['email'] ?> - <?= $c['telefone'] ?>
-                    <?php if($_SESSION['usuario']['perfil'] === 'admin'): ?>
-                        <a href="?url=contato&edit=<?= $c['id'] ?>">Editar</a>
-                        <a href="?url=contato&delete=<?= $c['id'] ?>" onclick="return confirm('Confirmar excluir?')">Deletar</a>
+                    <?= htmlspecialchars($c['nome']) ?> <?= htmlentities($c['sobrenome']) ?> -
+                    <?= htmlspecialchars($c['email']) ?> - <?= htmlentities($c['telefone']) ?>
+                    <?php if(!empty($_SESSION['usuario']) && $_SESSION['usuario']['perfil'] === 'admin'): ?>
+                        <a href="?url=contato&edit=<?= urlencode($c['id']) ?>">Editar</a>
+                        <a href="?url=contatos&delete=<?= urlencode($c['id']) ?>" onclick="return confirm('Confirmar excluir?')">Deletar</a>
                     <?php endif; ?>
                 </li>
-            <?php endforeach; ?>
+            <?php endforeach; ?>    
+        </ul>
+    <?php else: ?>
+        <p>Nenhum contato encontrado.</p>
+    <?php endif; ?>
 </body>
 </html>
