@@ -1,7 +1,6 @@
 <?php
 
 require_once 'models/ContatoModel.php';
-session_start();
 
 Class ContatoController
 {
@@ -22,89 +21,36 @@ Class ContatoController
 
     public function index()
     {
-        // verificar autenticação 
-        if (!$this->checkLogout()){
-            http_response_code(401);
-            echo json_encode(['erro' => 'Usuário não autenticado']);
-            return;
+        if(!$this->checkLogout()) {
+            header('Location: ?url=auth');
+            exit;
         }
 
-        $method = $_SERVER['REQUEST_METHOD'];
-
-        // method GET
-        if ($method === 'GET'){
-            $contatos = $this->model->getAll();
-            header('Content-Type: application/json');
-            echo json_encode($contatos);
-            return;
+        if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_GET['edit'])) {
+            $this->model->create($_POST);
+            header('Location: ?url=contato');
+            exit;
         }
 
-        if ($method === 'POST'){
-            $data = $_POST;
-            if (empty($data)){
-                $json = file_get_contents('php://input');
-                $data = json_decode($json, true);
-            }
-
-            if(!isset($data['nome'], $data['email'])) {
-                http_response_code(400);
-                echo json_encode(['erro' => 'Nome e email são obrigatórios']);
-                return;
-            }
-
-            $this->model->create($data);
-            http_response_code(201);
-            echo json_encode(['mensagem' => 'Contato criado com sucesso']);
-            return;   
+        if(isset($_GET['delete']) && $this->checkAdmin()) {
+            $this->model->delete($_GET['delete']);
+            header('Location: ?url=contato');
+            exit;
         }
 
-        if ($method === 'PUT') {
-            if (!$this->checkAdmin()) {
-                http_response_code(403);
-                echo json_encode(['erro' => 'Acesso negado: somente admins pode atualizar']);
-                return;
+        if(isset($_GET['edit']) && $this->checkAdmin()) {
+            $id = $_GET['edit'];
+            if($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $this->model->update($id, $_POST);
+                header('Location: ?url=contato');
+                exit;
             }
-
-            parse_str(file_get_contents('php://input'), $putVars);
-
-            if (!isset($putVars['id'])) {
-                http_response_code(400);
-                echo json_encode(['erro' => 'ID do contato é obrigatório']);
-                return;
-            }
-
-            $id = $putVars['id'];
-
-            $this->model->update($id, $putVars);
-            echo json_encode(['mensagem' => 'Contato atualizado com sucesso']);
-            return;
-
+            $contatoEditar = $this->model->getById($id);
         }
 
-        if ($method === 'DELETE') {
-            if (!$this->checkAdmin()) {
-                http_response_code(403);
-                echo json_encode(['erro' => 'Acesso negado: somente admins podem deletar']);
-                return;
-            }
+        $contatos = $this->model->getAll();
+        require_once 'views/home.php';
 
-            parse_str(file_get_contents('php://input'), $delVars);
-
-            if (!isset($delVars['id'])) {
-                http_response_code(400);
-                echo json_encode(['erro' => 'ID do contato é obrigatório']);
-                return;
-            }
-
-            $id = $delVars['id'];
-
-            $this->model->delete($id);
-            echo json_encode(['mensagem' => 'Contato deletado com sucesso']);
-            return;
-        }
-
-        http_response_code(405);
-        echo json_encode(['erro' => 'Método não suportado']);
     }
 }
 
