@@ -51,11 +51,32 @@ if (session_status() === PHP_SESSION_NONE) {
                     <?= htmlspecialchars($c['email']) ?> - <?= htmlentities($c['telefone']) ?>
                     <?php if(!empty($_SESSION['usuario']) && $_SESSION['usuario']['perfil'] === 'admin'): ?>
                         <a href="?url=contato&edit=<?= urlencode($c['id']) ?>">Editar</a>
-                        <a href="?url=contatos&delete=<?= urlencode($c['id']) ?>" onclick="return confirm('Confirmar excluir?')">Deletar</a>
+                        <a href="?url=contato&delete=<?= urlencode($c['id']) ?>" onclick="return confirm('Confirmar excluir?')">Deletar</a>
                     <?php endif; ?>
                 </li>
-            <?php endforeach; ?>    
+            <?php endforeach; ?>   
         </ul>
+
+        <?php
+            if (isset($contatoEditar)): ?>
+                <h2>Editar Contato</h2>
+                <form action="?url=contato&edit=<?= urlencode($contatoEditar['id']) ?>" method="POST">
+                    <label>Nome:</label>
+                    <input type="text" name="nome" value="<?= htmlspecialchars($contatoEditar['nome']) ?>" required><br>
+
+                    <label>Sobrenome:</label>
+                    <input type="text" name="sobrenome" value="<?= htmlspecialchars($contatoEditar['sobrenome']) ?>" required><br>
+
+                    <label>Telefone:</label>
+                    <input type="text" name="telefone" value="<?= htmlspecialchars($contatoEditar['telefone']) ?>" required><br>
+
+                    <label>Email:</label>
+                    <input type="email" name="email" value="<?= htmlspecialchars($contatoEditar['email']) ?>" required><br>
+
+                    <button type="submit">Salvar Alterações</button>
+                </form>
+            <?php endif;?>
+
     <?php else: ?>
         <p>Nenhum contato encontrado.</p>
     <?php endif; ?>

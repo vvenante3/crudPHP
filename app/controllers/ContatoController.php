@@ -34,7 +34,7 @@ Class ContatoController
 
         if(isset($_GET['delete']) && $this->checkAdmin()) {
             $this->model->delete($_GET['delete']);
-            header('Location: ?ur=contato');
+            header('Location: ?url=contato');
             exit;
         }
 
